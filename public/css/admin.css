@@ -1,0 +1,60 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', Tahoma, sans-serif; background-color: #0f1923; color: #ece8e1; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+
+/* === VÙNG ĐỎ: HEADER (Đã kéo dài xuống) === */
+header { background-color: #111; height: 90px; /* Tăng chiều cao từ 70px lên 90px */ border-bottom: 3px solid #5d4369; display: flex; justify-content: space-between; align-items: center; padding: 0 30px; flex-shrink: 0; }
+.header-left { display: flex; align-items: center; gap: 18px; }
+.logo-placeholder { width: 50px; height: 50px; background-color: #5d4369; color: white; display: flex; justify-content: center; align-items: center; font-weight: bold; border-radius: 8px; font-size: 1.3rem; }
+.header-titles h1 { font-size: 1.4rem; color: #fff; line-height: 1.2; margin: 0; }
+.header-titles h1 span { color: #5d4369; }
+.header-titles p { font-size: 0.9rem; color: #888; margin: 0; text-transform: uppercase; letter-spacing: 1.5px; }
+.header-right a { background: transparent; border: 2px solid #5d4369; color: #5d4369; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-weight: bold; transition: 0.3s; font-size: 1rem; }
+.header-right a:hover { background: #5d4369; color: #fff; box-shadow: 0 0 10px rgba(93,67,105,0.5); }
+
+/* KẾT CẤU BÊN DƯỚI HEADER */
+.dashboard-wrapper { display: flex; flex: 1; height: calc(100vh - 90px); /* Phải trừ đi 90px của header mới */ }
+
+/* === VÙNG XANH: SIDEBAR (Nút to và tách nhau) === */
+.sidebar { width: 280px; background-color: #1a1e24; border-right: 1px solid #2a2e35; display: flex; flex-direction: column; padding: 25px 15px; /* Thêm padding hai bên */ gap: 12px; /* Tách các nút ra 12px */ flex-shrink: 0; }
+.sidebar-btn { width: 100%; text-align: left; padding: 18px 25px; /* Nút to hơn */ background: none; border: none; color: #aaa; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: 0.3s; border-radius: 8px; /* Bo góc cho nút */ border-left: 5px solid transparent; display: flex; align-items: center; gap: 12px; }
+.sidebar-btn:hover { color: #fff; background-color: #232830; }
+.sidebar-btn.active { color: #fff; background-color: #232830; border-left-color: #5d4369; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+
+/* === VÙNG VÀNG: MAIN CONTENT (Căn giữa nội dung) === */
+.main-content { flex: 1; padding: 40px; overflow-y: auto; background-color: #0f1923; }
+.tab-content { 
+    display: none; 
+    background-color: #1f2326; 
+    padding: 40px; 
+    border-radius: 12px; 
+    border: 1px solid #333; 
+    box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+    /* Lệnh căn giữa khối nội dung */
+    width: 100%;
+    max-width: 1200px; /* Chiều rộng tối đa */
+    margin: 0 auto;    /* Căn ra giữa màn hình */
+}
+.tab-content.active { display: block; animation: fadeIn 0.3s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Form & Bảng */
+.input-group { margin-bottom: 20px; }
+.input-group label { display: block; margin-bottom: 10px; font-weight: bold; color: #aaa; font-size: 1.05rem; }
+.input-group input, .input-group select, .input-group textarea { width: 100%; padding: 15px; background-color: #0f1923; border: 1px solid #333; color: white; border-radius: 6px; outline: none; transition: 0.3s; font-size: 1rem; }
+.input-group input:focus, .input-group textarea:focus { border-color: #5d4369; box-shadow: 0 0 8px rgba(93,67,105,0.6); }
+.submit-btn { padding: 15px 30px; background-color: #5d4369; color: white; border: none; border-radius: 6px; font-size: 1.15rem; font-weight: bold; cursor: pointer; transition: 0.3s; }
+.submit-btn:hover { background-color: #4a3554; }
+
+.search-admin { margin-bottom: 25px; }
+.search-admin input { width: 100%; max-width: 500px; padding: 12px 20px; background: #0f1923; border: 1px solid #333; color: white; border-radius: 30px; outline: none; font-size: 1rem; transition: 0.3s; }
+.search-admin input:focus { border-color: #5d4369; box-shadow: 0 0 8px rgba(93,67,105,0.4); }
+
+table { width: 100%; border-collapse: separate; border-spacing: 0; margin-top: 10px; background-color: #1a1e24; border-radius: 8px; overflow: hidden; border: 1px solid #2a2e35; }
+th, td { padding: 18px 20px; text-align: left; border-bottom: 1px solid #2a2e35; }
+th { color: #5d4369; font-weight: bold; background-color: #111; text-transform: uppercase; font-size: 0.95rem; }
+tr:hover { background-color: #232830; }
+
+/* Nút Action (Sửa / Xóa) to và tách nhau */
+.action-btn { padding: 8px 16px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; color: white; margin-right: 10px; transition: 0.2s; font-size: 0.95rem; }
+.edit-btn { background-color: #3b82f6; } .edit-btn:hover { background-color: #2563eb; box-shadow: 0 0 8px rgba(59,130,246,0.5); }
+.delete-btn { background-color: #ff4655; } .delete-btn:hover { background-color: #dc2626; box-shadow: 0 0 8px rgba(255,70,85,0.5); }

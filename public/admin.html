@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ Thống Quản Trị - Q-Esport</title>
+    <link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+
+    <header>
+        <div class="header-left">
+            <div class="header-titles">
+                <p>Hệ Thống Quản Lý</p>
+                <h1 style="display: flex; align-items: center;">
+                    <img src="images/logo.png" alt="Logo" style="height: 90px; margin-right: 5px;">
+                    <span>Esport</span>
+                </h1>
+            </div>
+        </div>
+        <div class="header-right">
+            <a href="index.html">⬅ Trở về Trang chủ</a>
+        </div>
+    </header>
+
+    <div class="dashboard-wrapper">
+        <aside class="sidebar">
+            <button class="sidebar-btn active" onclick="switchTab('manage-tab', this)">📊 Quản Lý Bài Viết</button>
+            <button class="sidebar-btn" onclick="switchTab('post-tab', this)">📝 Đăng Bài Mới</button>
+            <button class="sidebar-btn" onclick="switchTab('account-tab', this)">👥 Quản Lý Tài Khoản</button>
+            <button class="sidebar-btn" onclick="switchTab('report-tab', this)">🚩 Quản Lý Báo Cáo</button>
+            <button class="sidebar-btn" onclick="switchTab('add-admin-tab', this)">🛡️ Thêm TK ADMIN</button>
+        </aside>
+
+        <main class="main-content">
+            <div id="manage-tab" class="tab-content active">
+                <h2 style="color: #fff; margin-bottom: 20px;">Danh sách bài viết</h2>
+                <div class="search-admin"><input type="text" id="adminSearch" placeholder="🔍 Tìm tiêu đề..."></div>
+                <table>
+                    <thead>
+                        <tr><th>Tiêu đề</th><th style="width: 120px;">Chuyên mục</th><th style="width: 120px;">Ngày đăng</th><th style="width: 150px;">Thao tác</th></tr>
+                    </thead>
+                    <tbody id="adminTableBody"></tbody>
+                </table>
+            </div>
+
+            <div id="post-tab" class="tab-content">
+                <h2 id="postFormTitle" style="color: #fff; text-align: center; margin-bottom: 20px;">Đăng bài viết mới</h2>
+                <form id="createPostForm" style="max-width: 800px; margin: 0 auto;">
+                    <input type="hidden" id="editArticleId">
+                    <div class="input-group"><label>Tiêu đề</label><input type="text" id="postTitle" required></div>
+                    <div class="input-group">
+                        <label>Chuyên mục</label>
+                        <select id="postCategory">
+                            <option value="LOL">LOL</option><option value="TFT">TFT</option><option value="CS2">CS:GO 2</option><option value="Valorant">Valorant</option><option value="PUBG">PUBG</option>
+                        </select>
+                    </div>
+                    <div class="input-group"><label>Link ảnh bìa</label><input type="text" id="postImage" required></div>
+                    <div class="input-group"><label>Tóm tắt</label><textarea id="postSummary" rows="2" required></textarea></div>
+                    <div class="input-group"><label>Nội dung (HTML)</label><textarea id="postContent" rows="8" required></textarea></div>
+                    <div style="display: flex; gap: 10px;">
+                        <button type="submit" id="submitPostBtn" class="submit-btn" style="flex:1;">ĐĂNG BÀI</button>
+                        <button type="button" id="cancelEditBtn" class="submit-btn" style="background:#ff4655; display:none; flex:1;" onclick="cancelEdit()">HỦY</button>
+                    </div>
+                </form>
+            </div>
+
+            <div id="account-tab" class="tab-content">
+                <h2 style="color: #fff; margin-bottom: 20px;">Danh sách tài khoản hệ thống</h2>
+                <table>
+                    <thead>
+                        <tr><th>Tên tài khoản</th><th>Email</th><th style="width: 150px;">Vai trò</th><th style="width: 200px;">Thao tác</th></tr>
+                    </thead>
+                    <tbody id="userTableBody"></tbody>
+                </table>
+            </div>
+
+            <div id="report-tab" class="tab-content">
+                <h2 style="color: #fff; margin-bottom: 20px;">Bình luận bị báo cáo vi phạm</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 150px;">Người bình luận</th>
+                            <th>Nội dung vi phạm</th>
+                            <th style="width: 200px;">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="reportTableBody"></tbody>
+                </table>
+            </div>
+
+            <div id="add-admin-tab" class="tab-content">
+                <h2 style="color: #fff; text-align: center; margin-bottom: 20px;">Tạo Tài Khoản Quản Trị Viên</h2>
+                <form id="createAdminForm" style="max-width: 500px; margin: 0 auto;">
+                    <div class="input-group"><label>Tên đăng nhập</label><input type="text" id="adminUser" required></div>
+                    <div class="input-group"><label>Email</label><input type="email" id="adminEmail" required></div>
+                    <div class="input-group"><label>Mật khẩu</label><input type="password" id="adminPass" required></div>
+                    <button type="submit" class="submit-btn" style="width: 100%;">TẠO ADMIN</button>
+                </form>
+            </div>
+        </main>
+    </div>
+
+    <script src="js/admin.js"></script>
+</body>
+</html>

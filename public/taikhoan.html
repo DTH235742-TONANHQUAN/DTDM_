@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý Tài khoản - Q-Esport</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .account-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #1f2326;
+            padding: 40px 50px;
+            border-radius: 12px;
+            border: 1px solid #2a2e35;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .account-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .account-header h1 {
+            font-size: 2.2rem;
+            color: #fff;
+            margin-bottom: 10px;
+        }
+        .account-header p {
+            color: #aaa;
+        }
+        .form-group {
+            margin-bottom: 25px;
+        }
+        .form-group label {
+            display: block;
+            color: #ccc;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            background-color: #111418;
+            border: 1px solid #333;
+            border-radius: 6px;
+            color: #fff;
+            font-size: 1rem;
+            outline: none;
+            transition: 0.3s;
+        }
+        .form-group input:focus {
+            border-color: #5d4369;
+            box-shadow: 0 0 8px rgba(93, 67, 105, 0.5);
+        }
+        .form-group input[readonly] {
+            background-color: #2a2e35;
+            color: #888;
+            cursor: not-allowed;
+        }
+        .btn-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+        .btn-save {
+            flex: 1;
+            padding: 12px;
+            background-color: #5d4369;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .btn-save:hover {
+            background-color: #4a3554;
+        }
+        .section-title {
+            color: #fff;
+            border-bottom: 2px solid #5d4369;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            margin-top: 40px;
+            font-size: 1.5rem;
+        }
+        .success-msg {
+            color: #2ecc71;
+            text-align: center;
+            margin-bottom: 20px;
+            display: none;
+            font-weight: bold;
+            background: rgba(46, 204, 113, 0.1);
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #2ecc71;
+        }
+        .error-msg {
+            color: #ff4655;
+            text-align: center;
+            margin-bottom: 20px;
+            display: none;
+            font-weight: bold;
+            background: rgba(255, 70, 85, 0.1);
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ff4655;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="header-placeholder"></div>
+
+    <div class="container">
+        <div class="account-container">
+            <div class="account-header">
+                <h1>Hồ sơ của bạn</h1>
+                <p>Quản lý thông tin cá nhân và bảo mật tài khoản</p>
+            </div>
+
+            <div id="statusMessage"></div>
+
+            <form id="profileForm">
+                <h2 class="section-title">Thông tin cơ bản</h2>
+                
+                <div class="form-group">
+                    <label>Tên đăng nhập (Username)</label>
+                    <input type="text" id="accUsername" readonly title="Tên đăng nhập không thể thay đổi">
+                </div>
+                
+                <div class="form-group">
+                    <label>Họ và Tên</label>
+                    <input type="text" id="accFullName" placeholder="Nhập họ và tên thật của bạn">
+                </div>
+
+                <div class="form-group">
+                    <label>Địa chỉ Email</label>
+                    <input type="email" id="accEmail" placeholder="ví dụ: player@gmail.com">
+                </div>
+
+                <div class="form-group">
+                    <label>Số điện thoại</label>
+                    <input type="tel" id="accPhone" placeholder="Nhập số điện thoại liên lạc">
+                </div>
+
+                <div class="btn-group">
+                    <button type="submit" class="btn-save">💾 Cập nhật thông tin</button>
+                </div>
+            </form>
+
+            <form id="passwordForm" style="margin-top: 50px;">
+                <h2 class="section-title">Đổi mật khẩu</h2>
+                
+                <div class="form-group">
+                    <label>Mật khẩu hiện tại</label>
+                    <input type="password" id="currentPassword" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Mật khẩu mới</label>
+                    <input type="password" id="newPassword" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Xác nhận mật khẩu mới</label>
+                    <input type="password" id="confirmPassword" required>
+                </div>
+
+                <div class="btn-group">
+                    <button type="submit" class="btn-save" style="background-color: #2a2e35; border: 1px solid #444;">🔑 Đổi mật khẩu</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="footer-placeholder"></div>
+    
+    <script src="js/script.js"></script>
+    <script>
+        // Khi trang vừa load lên, điền sẵn thông tin user vào form
+        document.addEventListener('DOMContentLoaded', () => {
+            const userStr = localStorage.getItem('esport_user');
+            if (!userStr) {
+                window.location.href = 'dangnhap.html'; // Bắt buộc đăng nhập
+                return;
+            }
+
+            const user = JSON.parse(userStr);
+            document.getElementById('accUsername').value = user.username;
+            
+            // Giả lập load data (Vì backend cũ chưa có trường FullName, Email, Phone, ta lưu tạm vào LocalStorage để test)
+            const savedData = JSON.parse(localStorage.getItem(`profile_${user.username}`)) || {};
+            document.getElementById('accFullName').value = savedData.fullName || '';
+            document.getElementById('accEmail').value = savedData.email || '';
+            document.getElementById('accPhone').value = savedData.phone || '';
+        });
+
+        function showMessage(text, isSuccess) {
+            const msgBox = document.getElementById('statusMessage');
+            msgBox.textContent = text;
+            msgBox.className = isSuccess ? 'success-msg' : 'error-msg';
+            msgBox.style.display = 'block';
+            setTimeout(() => msgBox.style.display = 'none', 3000);
+        }
+
+        // Xử lý nút Lưu thông tin
+        document.getElementById('profileForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const user = JSON.parse(localStorage.getItem('esport_user'));
+            
+            const profileData = {
+                fullName: document.getElementById('accFullName').value,
+                email: document.getElementById('accEmail').value,
+                phone: document.getElementById('accPhone').value
+            };
+
+            // Lưu tạm vào LocalStorage (Thực tế sau này sẽ call API PUT lên Server)
+            localStorage.setItem(`profile_${user.username}`, JSON.stringify(profileData));
+            showMessage('Cập nhật thông tin hồ sơ thành công!', true);
+        });
+
+        // Xử lý nút Đổi mật khẩu
+        document.getElementById('passwordForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const current = document.getElementById('currentPassword').value;
+            const newPass = document.getElementById('newPassword').value;
+            const confirm = document.getElementById('confirmPassword').value;
+
+            if (newPass !== confirm) {
+                showMessage('Mật khẩu mới không khớp nhau!', false);
+                return;
+            }
+
+            if (newPass.length < 6) {
+                showMessage('Mật khẩu mới phải dài ít nhất 6 ký tự!', false);
+                return;
+            }
+
+            // Ở đây sau này sẽ gọi API kiểm tra pass cũ và cập nhật pass mới.
+            // Tạm thời giả lập thành công:
+            showMessage('Đổi mật khẩu thành công! Vui lòng dùng mật khẩu mới cho lần đăng nhập sau.', true);
+            document.getElementById('passwordForm').reset();
+        });
+    </script>
+</body>
+</html>
