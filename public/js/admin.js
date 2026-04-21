@@ -18,7 +18,7 @@ function switchTab(tabId, btnElement) {
 // === QUẢN LÝ BÀI VIẾT ===
 let adminArticles = [];
 async function fetchAdminArticles() {
-    const res = await fetch('http://localhost:3000/api/articles');
+    const res = await fetch('/api/articles');
     adminArticles = await res.json();
     renderAdminTable(adminArticles);
 }
@@ -48,7 +48,7 @@ document.getElementById('adminSearch').addEventListener('input', (e) => {
 
 async function deleteArticle(id) {
     if(!confirm("Xóa bài viết này?")) return;
-    await fetch(`http://localhost:3000/api/articles/${id}`, { method: 'DELETE' });
+    await fetch(`/api/articles/${id}`, { method: 'DELETE' });
     fetchAdminArticles();
 }
 
@@ -85,7 +85,7 @@ document.getElementById('createPostForm').addEventListener('submit', async (e) =
         content: document.getElementById('postContent').value
     };
     const method = id ? 'PUT' : 'POST';
-    const url = id ? `http://localhost:3000/api/articles/${id}` : 'http://localhost:3000/api/articles';
+    const url = id ? `/api/articles/${id}` : '/api/articles';
     await fetch(url, {
         method: method, headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
@@ -96,7 +96,7 @@ document.getElementById('createPostForm').addEventListener('submit', async (e) =
 
 // === QUẢN LÝ TÀI KHOẢN ===
 async function fetchAllUsers() {
-    const res = await fetch('http://localhost:3000/api/users');
+    const res = await fetch('/api/users');
     const users = await res.json();
     const tbody = document.getElementById('userTableBody');
     tbody.innerHTML = '';
@@ -119,14 +119,14 @@ async function fetchAllUsers() {
 
 async function deleteUser(id) {
     if(confirm("Xóa tài khoản này?")) {
-        await fetch(`http://localhost:3000/api/users/${id}`, { method: 'DELETE' });
+        await fetch(`/api/users/${id}`, { method: 'DELETE' });
         fetchAllUsers();
     }
 }
 
 async function promoteToAdmin(id) {
     if(confirm("Thăng cấp lên Admin?")) {
-        await fetch(`http://localhost:3000/api/users/${id}/promote`, { method: 'PATCH' });
+        await fetch(`/api/users/${id}/promote`, { method: 'PATCH' });
         fetchAllUsers();
     }
 }
@@ -134,7 +134,7 @@ async function promoteToAdmin(id) {
 // === QUẢN LÝ BÁO CÁO BÌNH LUẬN ===
 async function fetchReportedComments() {
     try {
-        const res = await fetch('http://localhost:3000/api/admin/comments/reported');
+        const res = await fetch('/api/admin/comments/reported');
         const comments = await res.json();
         const tbody = document.getElementById('reportTableBody');
         tbody.innerHTML = '';
@@ -162,14 +162,14 @@ async function fetchReportedComments() {
 
 async function deleteReportedComment(id) {
     if(confirm("Xóa vĩnh viễn bình luận vi phạm này?")) {
-        await fetch(`http://localhost:3000/api/comments/${id}`, { method: 'DELETE' });
+        await fetch(`/api/comments/${id}`, { method: 'DELETE' });
         fetchReportedComments();
     }
 }
 
 async function dismissReport(id) {
     if(confirm("Bình luận này bình thường, gỡ mác báo cáo?")) {
-        await fetch(`http://localhost:3000/api/admin/comments/${id}/dismiss`, { method: 'PATCH' });
+        await fetch(`/api/admin/comments/${id}/dismiss`, { method: 'PATCH' });
         fetchReportedComments();
     }
 }
@@ -180,7 +180,7 @@ document.getElementById('createAdminForm').addEventListener('submit', async (e) 
     const username = document.getElementById('adminUser').value;
     const email = document.getElementById('adminEmail').value;
     const password = document.getElementById('adminPass').value;
-    const res = await fetch('http://localhost:3000/api/auth/create-admin', {
+    const res = await fetch('/api/auth/create-admin', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, email, password })
     });
