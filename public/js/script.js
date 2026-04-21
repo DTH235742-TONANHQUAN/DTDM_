@@ -77,7 +77,17 @@ async function fetchArticles() {
         const top4 = sortedByDate.slice(0, 4);
         
         renderHeroBanner(top4);
-        renderArticles(sortedByDate);
+
+        // LOGIC MỚI: Kiểm tra xem có phải trang chủ không (dựa vào nút Xem Thêm)
+        const isHomePage = document.getElementById('loadMoreContainer') !== null;
+        let articlesToShow = sortedByDate;
+        
+        // Nếu là trang chủ, chỉ lấy 6 bài để hiển thị
+        if (isHomePage) {
+            articlesToShow = sortedByDate.slice(0, 6);
+        }
+
+        renderArticles(articlesToShow);
         renderMostRead(allArticles);
 
     } catch (error) {
@@ -208,7 +218,14 @@ function applyFiltersAndSearch() {
     
     const sortedByDate = [...filteredList].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     
-    renderArticles(sortedByDate);
+    // LOGIC MỚI: Giữ nguyên giới hạn 6 bài khi người dùng bấm Lọc hoặc Tìm kiếm ở Trang chủ
+    const isHomePage = document.getElementById('loadMoreContainer') !== null;
+    let articlesToShow = sortedByDate;
+    if (isHomePage) {
+        articlesToShow = sortedByDate.slice(0, 6);
+    }
+    
+    renderArticles(articlesToShow);
 }
 
 const searchInput = document.getElementById('homeSearchInput');
