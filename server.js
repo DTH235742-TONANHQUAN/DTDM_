@@ -130,6 +130,6 @@ app.patch('/api/articles/:id/view', async (req, res) => {
 // ==================================================
 // 4. PHỤC VỤ GIAO DIỆN FRONTEND CHO RENDER
 // ==================================================
-app.get('*', (req, res) => {
+app.get(/(.*)/, (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
