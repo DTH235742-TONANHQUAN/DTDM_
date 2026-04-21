@@ -1,5 +1,31 @@
 let allArticles = [];
 
+// ==========================================
+// 1. LOGIC CHO MENU 3 GẠCH (HAMBURGER MENU)
+// ==========================================
+window.toggleMainMenu = function(e) {
+    e.stopPropagation();
+    const menu = document.getElementById('mainMenu');
+    if (menu) menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+};
+
+window.toggleUserMenu = function(e) {
+    e.stopPropagation();
+    const menu = document.getElementById('userMenuDropdown');
+    if (menu) menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+};
+
+// Bấm ra ngoài thì tự đóng menu
+document.addEventListener('click', function() {
+    const mainMenu = document.getElementById('mainMenu');
+    const userMenu = document.getElementById('userMenuDropdown');
+    if (mainMenu) mainMenu.style.display = 'none';
+    if (userMenu) userMenu.style.display = 'none';
+});
+
+// ==========================================
+// 2. XỬ LÝ ĐĂNG NHẬP / TÀI KHOẢN
+// ==========================================
 function checkAuth() {
     const authSection = document.getElementById('auth-section');
     if (!authSection) return;
@@ -8,13 +34,20 @@ function checkAuth() {
     
     if (userStr) {
         const user = JSON.parse(userStr);
-        let html = `<span class="user-greeting">Chào, ${user.username}</span>`;
-        if (user.role === 'admin') {
-            html += `<a href="admin.html" class="admin-btn" style="margin-left: 10px;">⚙️ Trang Admin</a>`;
-        }
-        html += `<button class="auth-btn" onclick="logout()" style="margin-left: 10px;">Đăng xuất</button>`;
-        authSection.innerHTML = html;
+        // Giao diện khi đã đăng nhập (Có menu 3 gạch bên phải)
+        authSection.innerHTML = `
+            <span class="user-greeting">Chào, ${user.username}</span>
+            <div class="user-menu-container">
+                <button class="hamburger-btn" onclick="toggleUserMenu(event)">☰</button>
+                <ul class="user-dropdown" id="userMenuDropdown" style="display: none;">
+                    <li><a href="taikhoan.html">👤 Hồ sơ của tôi</a></li>
+                    ${user.role === 'admin' ? `<li><a href="admin.html">⚙️ Trang Admin</a></li>` : ''}
+                    <li><a href="#" onclick="logout()">🚪 Đăng xuất</a></li>
+                </ul>
+            </div>
+        `;
     } else {
+        // Giao diện khi chưa đăng nhập
         authSection.innerHTML = `
             <a href="dangnhap.html" class="auth-btn">Đăng nhập</a>
             <a href="dangky.html" class="auth-btn">Đăng ký</a>
@@ -26,8 +59,15 @@ function logout() {
     localStorage.removeItem('esport_user');
     localStorage.removeItem('esport_token'); 
     checkAuth(); 
+    // Nếu đang ở trang yêu cầu đăng nhập thì đá ra trang chủ
+    if(window.location.pathname.includes('taikhoan.html') || window.location.pathname.includes('admin.html')) {
+        window.location.href = 'index.html';
+    }
 }
 
+// ==========================================
+// 3. TẢI VÀ HIỂN THỊ BÀI VIẾT (TRANG CHỦ & TIN TỨC)
+// ==========================================
 async function fetchArticles() {
     try {
         const response = await fetch('/api/articles');
@@ -148,6 +188,9 @@ function renderMostRead(articles) {
     });
 }
 
+// ==========================================
+// 4. LỌC VÀ TÌM KIẾM BÀI VIẾT
+// ==========================================
 let currentCategory = 'Tất cả';
 let currentSearchText = '';
 
@@ -184,6 +227,54 @@ document.querySelectorAll('.filter-btn').forEach(button => {
         applyFiltersAndSearch(); 
     });
 });
+
+// ==========================================
+// 5. TRANG CHI TIẾT BÀI VIẾT & BÌNH LUẬN
+// ==========================================
+async function loadArticleDetail() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const articleId = urlParams.get('id');
+
+    if (!articleId) return; 
+
+    const detailContainer = document.getElementById('articleDetail');
+    if (!detailContainer) return;
+
+    try {
+        fetch(`/api/articles/${articleId}/view`, { method: 'PATCH' }).catch(err => console.log(err));
+
+        const response = await fetch(`/api/articles/${articleId}`);
+        if (!response.ok) throw new Error('Bài viết không tồn tại');
+        
+        const article = await response.json();
+        const dateString = new Date(article.createdAt).toLocaleString('vi-VN');
+        const viewsCount = (article.views || 0) + 1; 
+
+        detailContainer.innerHTML = `
+            <div style="text-align: center;">
+                <span class="category-tag">${article.category}</span>
+                <h1 class="detail-title">${article.title}</h1>
+                <div class="detail-meta" style="justify-content: center;">
+                    <span>✍️ Đăng bởi: Admin</span>
+                    <span>🕒 ${dateString}</span>
+                    <span>👁️ ${viewsCount} lượt xem</span>
+                </div>
+            </div>
+            <img src="${article.imageUrl}" alt="${article.title}" class="detail-cover" onerror="this.onerror=null; this.src='https://placehold.co/1000x500/5d4369/FFF?text=No+Cover+Image'">
+            <div class="detail-content">
+                <p><strong><em>${article.summary}</em></strong></p>
+                <div style="margin-top: 30px;">${article.content}</div>
+            </div>
+        `;
+        
+        loadComments(articleId);
+
+    } catch (error) {
+        detailContainer.innerHTML = `
+            <h2 style="text-align: center; color: #ff4655;">❌ Lỗi: Không thể tải bài viết này!</h2>
+        `;
+    }
+}
 
 async function loadComments(articleId) {
     const commentsList = document.getElementById('commentsList');
@@ -315,51 +406,9 @@ async function reportComment(id) {
     }
 }
 
-async function loadArticleDetail() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const articleId = urlParams.get('id');
-
-    if (!articleId) return; 
-
-    const detailContainer = document.getElementById('articleDetail');
-    if (!detailContainer) return;
-
-    try {
-        fetch(`/api/articles/${articleId}/view`, { method: 'PATCH' }).catch(err => console.log(err));
-
-        const response = await fetch(`/api/articles/${articleId}`);
-        if (!response.ok) throw new Error('Bài viết không tồn tại');
-        
-        const article = await response.json();
-        const dateString = new Date(article.createdAt).toLocaleString('vi-VN');
-        const viewsCount = (article.views || 0) + 1; 
-
-        detailContainer.innerHTML = `
-            <div style="text-align: center;">
-                <span class="category-tag">${article.category}</span>
-                <h1 class="detail-title">${article.title}</h1>
-                <div class="detail-meta" style="justify-content: center;">
-                    <span>✍️ Đăng bởi: Admin</span>
-                    <span>🕒 ${dateString}</span>
-                    <span>👁️ ${viewsCount} lượt xem</span>
-                </div>
-            </div>
-            <img src="${article.imageUrl}" alt="${article.title}" class="detail-cover" onerror="this.onerror=null; this.src='https://placehold.co/1000x500/5d4369/FFF?text=No+Cover+Image'">
-            <div class="detail-content">
-                <p><strong><em>${article.summary}</em></strong></p>
-                <div style="margin-top: 30px;">${article.content}</div>
-            </div>
-        `;
-        
-        loadComments(articleId);
-
-    } catch (error) {
-        detailContainer.innerHTML = `
-            <h2 style="text-align: center; color: #ff4655;">❌ Lỗi: Không thể tải bài viết này!</h2>
-        `;
-    }
-}
-
+// ==========================================
+// 6. TẢI COMPONENT VÀ KHỞI TẠO TRANG
+// ==========================================
 async function loadComponents() {
     try {
         const hRes = await fetch('components/header.html');
