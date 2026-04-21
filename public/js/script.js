@@ -1,8 +1,5 @@
 let allArticles = [];
 
-// ===============================================
-// 1. KIỂM TRA ĐĂNG NHẬP & MENU 3 GẠCH
-// ===============================================
 function checkAuth() {
     const authSection = document.getElementById('auth-section');
     if (!authSection) return;
@@ -11,20 +8,12 @@ function checkAuth() {
     
     if (userStr) {
         const user = JSON.parse(userStr);
-        let adminLink = user.role === 'admin' ? `<li><a href="admin.html">⚙️ Trang Admin</a></li>` : '';
-        authSection.innerHTML = `
-            <span class="user-greeting">Chào, ${user.username}</span>
-            <div class="user-menu-container" style="position: relative; margin-left: 10px;">
-                <button class="hamburger-btn" onclick="toggleUserMenu()">☰</button>
-                <ul class="user-dropdown" id="userDropdown" style="display: none;">
-                    <li><a href="index.html">🏠 Trang chủ</a></li>
-                    <li><a href="tintuc.html">📰 Tin tức</a></li>
-                   <li><a href="vechungtoi.html">ℹ️ Về chúng tôi</a></li>
-                    <li><a href="taikhoan.html">👤 Tài khoản</a></li>
-                    ${adminLink}
-                    <li style="border-top: 1px solid #333; margin-top: 5px;"><a href="#" onclick="logout()" style="color: #ff4655;">🚪 Đăng xuất</a></li>
-                </ul>
-            </div>`;
+        let html = `<span class="user-greeting">Chào, ${user.username}</span>`;
+        if (user.role === 'admin') {
+            html += `<a href="admin.html" class="admin-btn" style="margin-left: 10px;">⚙️ Trang Admin</a>`;
+        }
+        html += `<button class="auth-btn" onclick="logout()" style="margin-left: 10px;">Đăng xuất</button>`;
+        authSection.innerHTML = html;
     } else {
         authSection.innerHTML = `
             <a href="dangnhap.html" class="auth-btn">Đăng nhập</a>
@@ -33,46 +22,22 @@ function checkAuth() {
     }
 }
 
-function toggleUserMenu() {
-    const menu = document.getElementById('userDropdown');
-    if (menu) menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
-}
-
-// Click ra ngoài để tắt menu
-document.addEventListener('click', function(event) {
-    const container = document.querySelector('.user-menu-container');
-    const menu = document.getElementById('userDropdown');
-    if (container && menu && !container.contains(event.target)) {
-        menu.style.display = 'none';
-    }
-});
-
 function logout() {
     localStorage.removeItem('esport_user');
     localStorage.removeItem('esport_token'); 
-    window.location.href = 'index.html'; 
+    checkAuth(); 
 }
 
-// ===============================================
-// 2. LẤY DỮ LIỆU TỪ SERVER VÀ PHÂN LUỒNG HIỂN THỊ
-// ===============================================
 async function fetchArticles() {
     try {
-        const response = await fetch('http://localhost:3000/api/articles');
+        const response = await fetch('/api/articles');
         allArticles = await response.json();
         
         const sortedByDate = [...allArticles].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        const top4 = sortedByDate.slice(0, 4);
         
-        // KIỂM TRA ĐANG Ở TRANG NÀO ĐỂ RENDER CHO ĐÚNG
-        if (document.getElementById('heroBannerContainer')) {
-            // Trang chủ: 4 bài lên banner, 6 bài ở dưới
-            renderHeroBanner(sortedByDate.slice(0, 4));
-            renderArticles(sortedByDate, 6);
-        } else {
-            // Trang tintuc.html: Hiện TẤT CẢ bài báo (không giới hạn)
-            renderArticles(sortedByDate, 9999);
-        }
-
+        renderHeroBanner(top4);
+        renderArticles(sortedByDate);
         renderMostRead(allArticles);
 
     } catch (error) {
@@ -133,7 +98,7 @@ function renderHeroBanner(top4Articles) {
     `;
 }
 
-function renderArticles(articlesToRender, limit) {
+function renderArticles(articlesToRender) {
     const container = document.getElementById('news-container');
     if (!container) return;
     container.innerHTML = ''; 
@@ -143,10 +108,7 @@ function renderArticles(articlesToRender, limit) {
         return;
     }
     
-    // Áp dụng giới hạn số lượng bài (6 bài cho index, 9999 cho tintuc.html)
-    const listToRender = articlesToRender.slice(0, limit);
-
-    listToRender.forEach(article => {
+    articlesToRender.forEach(article => {
         const dateString = new Date(article.createdAt).toLocaleString('vi-VN');
         const viewsCount = article.views || 0; 
         
@@ -186,9 +148,6 @@ function renderMostRead(articles) {
     });
 }
 
-// ===============================================
-// 3. TÌM KIẾM VÀ LỌC (ÁP DỤNG CHUNG CHO CẢ 2 TRANG)
-// ===============================================
 let currentCategory = 'Tất cả';
 let currentSearchText = '';
 
@@ -206,9 +165,7 @@ function applyFiltersAndSearch() {
     
     const sortedByDate = [...filteredList].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     
-    // Nếu lọc ở trang chủ thì chỉ hiện tối đa 6 bài kết quả, nếu ở trang tintuc thì hiện hết
-    const limit = document.getElementById('heroBannerContainer') ? 6 : 9999;
-    renderArticles(sortedByDate, limit);
+    renderArticles(sortedByDate);
 }
 
 const searchInput = document.getElementById('homeSearchInput');
@@ -228,9 +185,6 @@ document.querySelectorAll('.filter-btn').forEach(button => {
     });
 });
 
-// ===============================================
-// 4. LOGIC ĐỌC TIN VÀ BÌNH LUẬN CHI TIẾT
-// ===============================================
 async function loadComments(articleId) {
     const commentsList = document.getElementById('commentsList');
     const commentCount = document.getElementById('commentCount');
@@ -261,7 +215,7 @@ async function loadComments(articleId) {
     }
 
     try {
-        const res = await fetch(`http://localhost:3000/api/comments/${articleId}`);
+        const res = await fetch(`/api/comments/${articleId}`);
         if (res.ok) {
             const comments = await res.json();
             commentCount.innerText = comments.length;
@@ -321,7 +275,7 @@ async function submitComment(articleId, username) {
     if (!content) return alert("Vui lòng nhập nội dung bình luận!");
 
     try {
-        const res = await fetch(`http://localhost:3000/api/comments/${articleId}`, {
+        const res = await fetch(`/api/comments/${articleId}`, {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username, content })
         });
@@ -333,7 +287,7 @@ async function editComment(id, oldContent, articleId) {
     const newContent = prompt("Sửa bình luận của bạn:", oldContent);
     if (newContent !== null && newContent.trim() !== "" && newContent !== oldContent) {
         try {
-            await fetch(`http://localhost:3000/api/comments/${id}`, {
+            await fetch(`/api/comments/${id}`, {
                 method: 'PUT', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ content: newContent })
             });
@@ -345,7 +299,7 @@ async function editComment(id, oldContent, articleId) {
 async function deleteComment(id, articleId) {
     if (confirm("Bạn có chắc chắn muốn xóa bình luận này?")) {
         try {
-            await fetch(`http://localhost:3000/api/comments/${id}`, { method: 'DELETE' });
+            await fetch(`/api/comments/${id}`, { method: 'DELETE' });
             loadComments(articleId);
         } catch (error) { alert("Lỗi xóa bình luận!"); }
     }
@@ -354,7 +308,7 @@ async function deleteComment(id, articleId) {
 async function reportComment(id) {
     if (confirm("Báo cáo bình luận này vì nội dung không phù hợp?")) {
         try {
-            await fetch(`http://localhost:3000/api/comments/${id}/report`, { method: 'PATCH' });
+            await fetch(`/api/comments/${id}/report`, { method: 'PATCH' });
             alert("Đã gửi báo cáo cho Admin xem xét!");
             document.getElementById('menu-' + id).style.display = 'none';
         } catch (error) { alert("Lỗi báo cáo!"); }
@@ -371,9 +325,9 @@ async function loadArticleDetail() {
     if (!detailContainer) return;
 
     try {
-        fetch(`http://localhost:3000/api/articles/${articleId}/view`, { method: 'PATCH' }).catch(err => console.log(err));
+        fetch(`/api/articles/${articleId}/view`, { method: 'PATCH' }).catch(err => console.log(err));
 
-        const response = await fetch(`http://localhost:3000/api/articles/${articleId}`);
+        const response = await fetch(`/api/articles/${articleId}`);
         if (!response.ok) throw new Error('Bài viết không tồn tại');
         
         const article = await response.json();
@@ -406,31 +360,18 @@ async function loadArticleDetail() {
     }
 }
 
-// ===============================================
-// 5. NẠP COMPONENT (HEADER VÀ FOOTER)
-// ===============================================
 async function loadComponents() {
     try {
         const hRes = await fetch('components/header.html');
         const fRes = await fetch('components/footer.html');
         const hBox = document.getElementById('header-placeholder');
         const fBox = document.getElementById('footer-placeholder');
-        
-        if(hBox) {
-            hBox.innerHTML = await hRes.text();
-            // Tự động phóng to logo (nếu có)
-            const logo = hBox.querySelector('img'); 
-            if(logo) logo.style.height = '90px';
-        }
-        
+        if(hBox) hBox.innerHTML = await hRes.text();
         if(fBox) fBox.innerHTML = await fRes.text();
 
         checkAuth(); 
-        
-        // Kích hoạt việc lấy dữ liệu nếu đang ở trang có chứa id 'news-container'
         if (document.getElementById('news-container')) fetchArticles(); 
         if (document.getElementById('articleDetail')) loadArticleDetail();
-
     } catch (error) { console.error("Lỗi khi tải component:", error); }
 }
 
