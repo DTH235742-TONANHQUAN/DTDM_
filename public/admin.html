@@ -29,6 +29,7 @@
             <button class="sidebar-btn" onclick="switchTab('post-tab', this)">📝 Đăng Bài Mới</button>
             <button class="sidebar-btn" onclick="switchTab('account-tab', this)">👥 Quản Lý Tài Khoản</button>
             <button class="sidebar-btn" onclick="switchTab('report-tab', this)">🚩 Quản Lý Báo Cáo</button>
+            <button class="sidebar-btn" onclick="switchTab('forum-tab', this)">💬 Quản Lý Diễn Đàn</button>
             <button class="sidebar-btn" onclick="switchTab('add-admin-tab', this)">🛡️ Thêm TK ADMIN</button>
         </aside>
 
@@ -86,6 +87,20 @@
                         </tr>
                     </thead>
                     <tbody id="reportTableBody"></tbody>
+                </table>
+            </div>
+
+            <div id="forum-tab" class="tab-content">
+                <h2 style="color: #fff; margin-bottom: 20px;">Quản lý bài đăng Diễn Đàn</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Tiêu đề</th>
+                            <th>Người đăng</th>
+                            <th style="width: 150px;">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="adminForumBody"></tbody>
                 </table>
             </div>
 

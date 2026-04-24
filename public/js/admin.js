@@ -174,6 +174,29 @@ async function dismissReport(id) {
     }
 }
 
+// === QUẢN LÝ DIỄN ĐÀN ===
+async function fetchAdminForums() {
+    const res = await fetch('/api/forums');
+    const forums = await res.json();
+    const tbody = document.getElementById('adminForumBody');
+    tbody.innerHTML = '';
+    forums.forEach(f => {
+        tbody.innerHTML += `
+            <tr>
+                <td><strong>${f.title}</strong></td>
+                <td>${f.author}</td>
+                <td><button onclick="deleteForum('${f._id}')" style="background:#ff4655; color:white; border:none; padding:5px 8px; border-radius:4px; cursor:pointer;">🗑️ Xóa</button></td>
+            </tr>`;
+    });
+}
+
+async function deleteForum(id) {
+    if(confirm("Xóa bài thảo luận này?")) {
+        await fetch(`/api/forums/${id}`, { method: 'DELETE' });
+        fetchAdminForums();
+    }
+}
+
 // TẠO ADMIN MỚI
 document.getElementById('createAdminForm').addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -193,4 +216,5 @@ document.getElementById('createAdminForm').addEventListener('submit', async (e) 
 // Khởi tạo
 fetchAdminArticles();
 fetchAllUsers();
-fetchReportedComments(); // Tải danh sách báo cáo
+fetchReportedComments(); 
+fetchAdminForums(); // Khởi chạy danh sách diễn đàn

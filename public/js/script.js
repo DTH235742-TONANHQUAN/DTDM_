@@ -1,21 +1,18 @@
 let allArticles = [];
 
 // ==========================================
-// 1. LOGIC CHO MENU 3 GẠCH (HAMBURGER MENU)
+// 1. MENU VÀ GIAO DIỆN CƠ BẢN
 // ==========================================
 window.toggleMainMenu = function(e) {
     e.stopPropagation();
     const menu = document.getElementById('mainMenu');
     if (menu) menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
 };
-
 window.toggleUserMenu = function(e) {
     e.stopPropagation();
     const menu = document.getElementById('userMenuDropdown');
     if (menu) menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
 };
-
-// Bấm ra ngoài thì tự đóng menu
 document.addEventListener('click', function() {
     const mainMenu = document.getElementById('mainMenu');
     const userMenu = document.getElementById('userMenuDropdown');
@@ -29,12 +26,9 @@ document.addEventListener('click', function() {
 function checkAuth() {
     const authSection = document.getElementById('auth-section');
     if (!authSection) return;
-
     const userStr = localStorage.getItem('esport_user');
-    
     if (userStr) {
         const user = JSON.parse(userStr);
-        // Giao diện khi đã đăng nhập (Có menu 3 gạch bên phải)
         authSection.innerHTML = `
             <span class="user-greeting">Chào, ${user.username}</span>
             <div class="user-menu-container">
@@ -47,398 +41,252 @@ function checkAuth() {
             </div>
         `;
     } else {
-        // Giao diện khi chưa đăng nhập
-        authSection.innerHTML = `
-            <a href="dangnhap.html" class="auth-btn">Đăng nhập</a>
-            <a href="dangky.html" class="auth-btn">Đăng ký</a>
-        `;
+        authSection.innerHTML = `<a href="dangnhap.html" class="auth-btn">Đăng nhập</a> <a href="dangky.html" class="auth-btn">Đăng ký</a>`;
     }
 }
 
 function logout() {
     localStorage.removeItem('esport_user');
-    localStorage.removeItem('esport_token'); 
     checkAuth(); 
-    // Nếu đang ở trang yêu cầu đăng nhập thì đá ra trang chủ
-    if(window.location.pathname.includes('taikhoan.html') || window.location.pathname.includes('admin.html')) {
-        window.location.href = 'index.html';
-    }
+    if(window.location.pathname.includes('taikhoan.html') || window.location.pathname.includes('admin.html')) window.location.href = 'index.html';
 }
 
 // ==========================================
-// 3. TẢI VÀ HIỂN THỊ BÀI VIẾT (TRANG CHỦ & TIN TỨC)
+// 3. TIN TỨC & LỌC TÌM KIẾM
 // ==========================================
 async function fetchArticles() {
     try {
         const response = await fetch('/api/articles');
         allArticles = await response.json();
-        
         const sortedByDate = [...allArticles].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-        const top4 = sortedByDate.slice(0, 4);
-        
-        renderHeroBanner(top4);
-
-        // LOGIC MỚI: Kiểm tra xem có phải trang chủ không (dựa vào nút Xem Thêm)
+        renderHeroBanner(sortedByDate.slice(0, 4));
         const isHomePage = document.getElementById('loadMoreContainer') !== null;
-        let articlesToShow = sortedByDate;
-        
-        // Nếu là trang chủ, chỉ lấy 6 bài để hiển thị
-        if (isHomePage) {
-            articlesToShow = sortedByDate.slice(0, 6);
-        }
-
-        renderArticles(articlesToShow);
+        renderArticles(isHomePage ? sortedByDate.slice(0, 6) : sortedByDate);
         renderMostRead(allArticles);
-
     } catch (error) {
         const container = document.getElementById('news-container');
-        if(container) container.innerHTML = '<h3 style="color:#ff4655; text-align:center; width:100%;">❌ Lỗi kết nối Server!</h3>';
+        if(container) container.innerHTML = '<h3 style="color:#ff4655; width:100%; text-align:center;">❌ Lỗi Server!</h3>';
     }
 }
-
 function renderHeroBanner(top4Articles) {
     const bannerContainer = document.getElementById('heroBannerContainer');
-    if (!bannerContainer) return;
-
-    const titleElement = bannerContainer.previousElementSibling;
-
-    if (top4Articles.length === 0) {
-        bannerContainer.innerHTML = '';
-        if (titleElement && titleElement.tagName === 'H2') titleElement.style.display = 'none';
-        return;
-    }
-
-    if (titleElement && titleElement.tagName === 'H2') titleElement.style.display = 'block';
-
-    const mainArticle = top4Articles[0];
-    const sideArticles = top4Articles.slice(1);
-
+    if (!bannerContainer || top4Articles.length === 0) return;
+    const mainA = top4Articles[0];
     let sideHtml = '';
-    sideArticles.forEach(article => {
-        const dateString = new Date(article.createdAt).toLocaleDateString('vi-VN');
-        sideHtml += `
-            <div class="hero-side-item" onclick="window.location.href='doctin.html?id=${article._id}'">
-                <img src="${article.imageUrl}" onerror="this.onerror=null; this.src='https://placehold.co/400x200/5d4369/FFF?text=No+Image'">
-                <div class="hero-side-overlay">
-                    <span class="hero-tag">${article.category}</span>
-                    <h3>${article.title}</h3>
-                    <span style="font-size: 0.75rem; color: #ccc;">🕒 ${dateString}</span>
-                </div>
-            </div>
-        `;
+    top4Articles.slice(1).forEach(a => {
+        sideHtml += `<div class="hero-side-item" onclick="window.location.href='doctin.html?id=${a._id}'"><img src="${a.imageUrl}" onerror="this.src='https://placehold.co/400x200/5d4369/FFF?text=No+Image'"><div class="hero-side-overlay"><span class="hero-tag">${a.category}</span><h3>${a.title}</h3></div></div>`;
     });
-
-    const mainDateString = new Date(mainArticle.createdAt).toLocaleDateString('vi-VN');
-
-    bannerContainer.innerHTML = `
-        <div class="hero-banner">
-            <div class="hero-main" onclick="window.location.href='doctin.html?id=${mainArticle._id}'">
-                <img src="${mainArticle.imageUrl}" onerror="this.onerror=null; this.src='https://placehold.co/800x400/5d4369/FFF?text=No+Image'">
-                <div class="hero-overlay">
-                    <span class="hero-tag">${mainArticle.category}</span>
-                    <h2>${mainArticle.title}</h2>
-                    <p style="color: #ccc; margin: 0; font-size: 0.9rem;">🕒 ${mainDateString} • 👁️ ${mainArticle.views || 0} lượt xem</p>
-                </div>
-            </div>
-            <div class="hero-side-list">
-                ${sideHtml}
-            </div>
-        </div>
-        <hr style="border: 0; border-top: 2px solid #2a2e35; margin-bottom: 30px;">
-    `;
+    bannerContainer.innerHTML = `<div class="hero-banner"><div class="hero-main" onclick="window.location.href='doctin.html?id=${mainA._id}'"><img src="${mainA.imageUrl}" onerror="this.src='https://placehold.co/800x400/5d4369/FFF?text=No+Image'"><div class="hero-overlay"><span class="hero-tag">${mainA.category}</span><h2>${mainA.title}</h2></div></div><div class="hero-side-list">${sideHtml}</div></div><hr style="border: 0; border-top: 2px solid #2a2e35; margin-bottom: 30px;">`;
 }
-
 function renderArticles(articlesToRender) {
     const container = document.getElementById('news-container');
     if (!container) return;
-    container.innerHTML = ''; 
-
-    if (articlesToRender.length === 0) {
-        container.innerHTML = '<h3 style="text-align:center; width:100%; color:#888;">Không tìm thấy bài viết nào.</h3>'; 
-        return;
-    }
-    
-    articlesToRender.forEach(article => {
-        const dateString = new Date(article.createdAt).toLocaleString('vi-VN');
-        const viewsCount = article.views || 0; 
-        
-        container.innerHTML += `
-            <div class="article-card" onclick="window.location.href='doctin.html?id=${article._id}'" style="cursor: pointer;">
-                <div class="article-img-wrapper">
-                    <img src="${article.imageUrl}" onerror="this.onerror=null; this.src='https://placehold.co/400x200/5d4369/FFF?text=No+Image'">
-                </div>
-                <div class="article-content">
-                    <span class="category-tag">${article.category}</span>
-                    <span style="font-size: 0.8rem; color: #aaa; margin-left: 10px;">👁️ ${viewsCount} lượt xem</span>
-                    <h2 class="article-title">${article.title}</h2>
-                    <p class="article-date">🕒 ${dateString}</p>
-                    <p class="article-summary">${article.summary}</p>
-                </div>
-            </div>`;
-    });
+    container.innerHTML = articlesToRender.length === 0 ? '<h3 style="width:100%; color:#888;">Không tìm thấy bài viết.</h3>' : articlesToRender.map(a => `<div class="article-card" onclick="window.location.href='doctin.html?id=${a._id}'"><div class="article-img-wrapper"><img src="${a.imageUrl}" onerror="this.src='https://placehold.co/400x200/5d4369/FFF?text=No+Image'"></div><div class="article-content"><span class="category-tag">${a.category}</span><h2 class="article-title">${a.title}</h2><p class="article-date">🕒 ${new Date(a.createdAt).toLocaleString('vi-VN')}</p></div></div>`).join('');
 }
-
 function renderMostRead(articles) {
     const mostReadList = document.getElementById('mostReadList');
-    if (!mostReadList) return;
-
-    const sortedByViews = [...articles].sort((a, b) => (b.views || 0) - (a.views || 0));
-    const top5 = sortedByViews.slice(0, 5);
-
-    mostReadList.innerHTML = '';
-    top5.forEach((article, index) => {
-        mostReadList.innerHTML += `
-            <li>
-                <span class="rank">${index + 1}</span>
-                <a href="doctin.html?id=${article._id}" style="text-decoration: none; display: block; width: 100%; transition: 0.2s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#ece8e1'">
-                    ${article.title}
-                </a>
-            </li>
-        `;
-    });
+    if (mostReadList) mostReadList.innerHTML = [...articles].sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, 5).map((a, i) => `<li><span class="rank">${i + 1}</span><a href="doctin.html?id=${a._id}">${a.title}</a></li>`).join('');
 }
 
-// ==========================================
-// 4. LỌC VÀ TÌM KIẾM BÀI VIẾT
-// ==========================================
-let currentCategory = 'Tất cả';
-let currentSearchText = '';
-
+let currentCategory = 'Tất cả', currentSearchText = '';
 function applyFiltersAndSearch() {
-    let filteredList = allArticles; 
-
-    if (currentCategory !== 'Tất cả') {
-        filteredList = filteredList.filter(article => article.category === currentCategory);
-    }
-    if (currentSearchText.trim() !== '') {
-        filteredList = filteredList.filter(article => 
-            article.title.toLowerCase().includes(currentSearchText.toLowerCase())
-        );
-    }
-    
-    const sortedByDate = [...filteredList].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-    
-    // LOGIC MỚI: Giữ nguyên giới hạn 6 bài khi người dùng bấm Lọc hoặc Tìm kiếm ở Trang chủ
+    let filtered = allArticles;
+    if (currentCategory !== 'Tất cả') filtered = filtered.filter(a => a.category === currentCategory);
+    if (currentSearchText.trim() !== '') filtered = filtered.filter(a => a.title.toLowerCase().includes(currentSearchText.toLowerCase()));
     const isHomePage = document.getElementById('loadMoreContainer') !== null;
-    let articlesToShow = sortedByDate;
-    if (isHomePage) {
-        articlesToShow = sortedByDate.slice(0, 6);
-    }
-    
-    renderArticles(articlesToShow);
+    renderArticles(isHomePage ? filtered.slice(0, 6) : filtered);
 }
-
-const searchInput = document.getElementById('homeSearchInput');
-if (searchInput) {
-    searchInput.addEventListener('input', function(e) {
-        currentSearchText = e.target.value; 
-        applyFiltersAndSearch(); 
-    });
-}
-
-document.querySelectorAll('.filter-btn').forEach(button => {
-    button.addEventListener('click', function() {
-        document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
-        this.classList.add('active');
-        currentCategory = this.getAttribute('data-category');
-        applyFiltersAndSearch(); 
-    });
-});
+if (document.getElementById('homeSearchInput')) document.getElementById('homeSearchInput').addEventListener('input', e => { currentSearchText = e.target.value; applyFiltersAndSearch(); });
+document.querySelectorAll('.filter-btn').forEach(btn => btn.addEventListener('click', function() { document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active')); this.classList.add('active'); currentCategory = this.getAttribute('data-category'); applyFiltersAndSearch(); }));
 
 // ==========================================
-// 5. TRANG CHI TIẾT BÀI VIẾT & BÌNH LUẬN
+// 4. CHI TIẾT BÀI VIẾT (TIN TỨC) VÀ BÌNH LUẬN
 // ==========================================
 async function loadArticleDetail() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const articleId = urlParams.get('id');
-
-    if (!articleId) return; 
-
-    const detailContainer = document.getElementById('articleDetail');
-    if (!detailContainer) return;
-
+    const id = new URLSearchParams(window.location.search).get('id');
+    const container = document.getElementById('articleDetail');
+    if (!id || !container) return;
     try {
-        fetch(`/api/articles/${articleId}/view`, { method: 'PATCH' }).catch(err => console.log(err));
-
-        const response = await fetch(`/api/articles/${articleId}`);
-        if (!response.ok) throw new Error('Bài viết không tồn tại');
-        
-        const article = await response.json();
-        const dateString = new Date(article.createdAt).toLocaleString('vi-VN');
-        const viewsCount = (article.views || 0) + 1; 
-
-        detailContainer.innerHTML = `
-            <div style="text-align: center;">
-                <span class="category-tag">${article.category}</span>
-                <h1 class="detail-title">${article.title}</h1>
-                <div class="detail-meta" style="justify-content: center;">
-                    <span>✍️ Đăng bởi: Admin</span>
-                    <span>🕒 ${dateString}</span>
-                    <span>👁️ ${viewsCount} lượt xem</span>
-                </div>
-            </div>
-            <img src="${article.imageUrl}" alt="${article.title}" class="detail-cover" onerror="this.onerror=null; this.src='https://placehold.co/1000x500/5d4369/FFF?text=No+Cover+Image'">
-            <div class="detail-content">
-                <p><strong><em>${article.summary}</em></strong></p>
-                <div style="margin-top: 30px;">${article.content}</div>
-            </div>
-        `;
-        
-        loadComments(articleId);
-
-    } catch (error) {
-        detailContainer.innerHTML = `
-            <h2 style="text-align: center; color: #ff4655;">❌ Lỗi: Không thể tải bài viết này!</h2>
-        `;
-    }
+        fetch(`/api/articles/${id}/view`, { method: 'PATCH' }).catch(e=>e);
+        const article = await (await fetch(`/api/articles/${id}`)).json();
+        container.innerHTML = `<div style="text-align: center;"><span class="category-tag">${article.category}</span><h1 class="detail-title">${article.title}</h1></div><img src="${article.imageUrl}" class="detail-cover" onerror="this.src='https://placehold.co/1000x500/5d4369/FFF?text=No+Cover'"><div class="detail-content"><p><strong><em>${article.summary}</em></strong></p><div>${article.content}</div></div>`;
+        loadComments(id);
+    } catch { container.innerHTML = `<h2 style="color:#ff4655;">❌ Lỗi: Không thể tải!</h2>`; }
 }
 
 async function loadComments(articleId) {
-    const commentsList = document.getElementById('commentsList');
-    const commentCount = document.getElementById('commentCount');
-    const formContainer = document.getElementById('commentFormContainer');
-    
-    if (!commentsList) return;
+    const list = document.getElementById('commentsList'), form = document.getElementById('commentFormContainer');
+    if (!list) return;
+    const user = JSON.parse(localStorage.getItem('esport_user'));
+    form.innerHTML = user ? `<div style="background:#1a1e24; padding:15px; border-radius:8px;"><p>Bình luận với tên: <b>${user.username}</b></p><textarea id="commentInput" rows="3" style="width:100%; padding:10px;"></textarea><button onclick="submitComment('${articleId}', '${user.username}')" class="submit-btn">Gửi</button></div>` : `<a href="dangnhap.html" class="submit-btn">Đăng nhập để bình luận</a>`;
+    const comments = await (await fetch(`/api/comments/${articleId}`)).json();
+    document.getElementById('commentCount').innerText = comments.length;
+    list.innerHTML = comments.map(c => `<div style="background:#1a1e24; padding:15px; border-left:4px solid #5d4369; margin-bottom:10px;"><b>${c.username}</b>: ${c.content}</div>`).join('');
+}
+async function submitComment(id, user) {
+    const content = document.getElementById('commentInput').value.trim();
+    if(content) { await fetch(`/api/comments/${id}`, { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({username: user, content})}); document.getElementById('commentInput').value = ''; loadComments(id); }
+}
 
-    const userStr = localStorage.getItem('esport_user');
-    const currentUser = userStr ? JSON.parse(userStr) : null;
-
-    if (currentUser) {
-        formContainer.innerHTML = `
-            <div style="background: #1a1e24; padding: 15px; border-radius: 8px; border: 1px solid #2a2e35;">
-                <p style="margin-bottom: 10px; font-weight: bold; color: #5d4369;">👤 Bạn đang bình luận với tên: <span style="color: white;">${currentUser.username}</span></p>
-                <textarea id="commentInput" rows="3" style="width: 100%; padding: 12px; background: #111418; color: white; border: 1px solid #333; border-radius: 5px; outline: none; margin-bottom: 10px; resize: vertical;" placeholder="Chia sẻ suy nghĩ của bạn về bài báo này..."></textarea>
-                <div style="text-align: right;">
-                    <button onclick="submitComment('${articleId}', '${currentUser.username}')" class="submit-btn" style="width: auto; padding: 10px 20px;">Gửi bình luận 🚀</button>
-                </div>
-            </div>
-        `;
-    } else {
-        formContainer.innerHTML = `
-            <div style="background: #1a1e24; padding: 20px; text-align: center; border-radius: 8px; border: 1px solid #2a2e35;">
-                <p style="color: #aaa; margin-bottom: 15px;">Bạn cần đăng nhập để tham gia bình luận cùng cộng đồng.</p>
-                <a href="dangnhap.html" class="submit-btn" style="text-decoration: none; display: inline-block; width: auto; padding: 10px 25px;">Đăng nhập ngay</a>
-            </div>
-        `;
-    }
-
+// ==========================================
+// 5. DIỄN ĐÀN (FORUM) - TRANG DANH SÁCH
+// ==========================================
+async function fetchForumPosts() {
+    const homeList = document.getElementById('homeForumList'), fullList = document.getElementById('fullForumList');
+    if (!homeList && !fullList) return;
     try {
-        const res = await fetch(`/api/comments/${articleId}`);
-        if (res.ok) {
-            const comments = await res.json();
-            commentCount.innerText = comments.length;
-            
-            if (comments.length === 0) {
-                commentsList.innerHTML = '<p style="color: #888; font-style: italic; text-align: center; margin-top: 10px;">Chưa có bình luận nào. Hãy là người đầu tiên bóc tem bài viết này!</p>';
-                return;
-            }
+        const posts = await (await fetch('/api/forums')).json();
+        const displayPosts = homeList ? posts.slice(0, 6) : posts;
+        let html = displayPosts.map(p => `<div class="forum-item">${p.imageUrl ? `<img src="${p.imageUrl}" class="forum-thumbnail">` : '<div class="forum-thumbnail" style="display:flex; justify-content:center; align-items:center; font-size:2rem;">💬</div>'}<div class="forum-info"><span class="forum-title" style="cursor:pointer;" onclick="window.location.href='chitietdiandan.html?id=${p._id}'">${p.title}</span><div class="forum-meta">👤 ${p.author} • 👁️ ${p.views || 0} xem</div></div></div>`).join('');
+        if (homeList) homeList.innerHTML = html || '<p>Chưa có bài viết.</p>';
+        if (fullList) fullList.innerHTML = html || '<p>Chưa có bài viết.</p>';
+    } catch (err) { console.log(err); }
+}
 
-            commentsList.innerHTML = '';
-            comments.forEach(cmt => {
-                const dateStr = new Date(cmt.createdAt).toLocaleString('vi-VN');
-                
-                let menuHtml = '';
-                if (currentUser) {
-                    const isOwner = currentUser.username === cmt.username;
-                    const isAdmin = currentUser.role === 'admin';
-                    
-                    menuHtml = `
-                    <div style="position: relative; display: inline-block;">
-                        <button onclick="toggleCommentMenu('${cmt._id}')" style="background:none; border:none; color:#888; font-size:1.5rem; cursor:pointer; padding: 0 10px;">⋮</button>
-                        <div id="menu-${cmt._id}" class="comment-menu" style="display:none; position:absolute; right:0; top:25px; background:#2a2e35; border:1px solid #444; padding:5px; border-radius:5px; z-index:10; min-width: 120px; box-shadow: 0 4px 8px rgba(0,0,0,0.5);">
-                            ${isOwner ? `<button onclick="editComment('${cmt._id}', \`${cmt.content}\`, '${articleId}')" style="display:block; width:100%; background:none; border:none; color:white; padding:8px; text-align:left; cursor:pointer;">✏️ Sửa</button>` : ''}
-                            ${(isOwner || isAdmin) ? `<button onclick="deleteComment('${cmt._id}', '${articleId}')" style="display:block; width:100%; background:none; border:none; color:#ff4655; padding:8px; text-align:left; cursor:pointer;">🗑️ Xóa</button>` : ''}
-                            ${!isOwner ? `<button onclick="reportComment('${cmt._id}')" style="display:block; width:100%; background:none; border:none; color:#f39c12; padding:8px; text-align:left; cursor:pointer;">🚩 Báo cáo</button>` : ''}
-                        </div>
-                    </div>`;
-                }
-
-                commentsList.innerHTML += `
-                    <div style="background: #1a1e24; padding: 15px; border-radius: 8px; border: 1px solid #2a2e35; border-left: 4px solid #5d4369;">
-                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
-                            <div>
-                                <span style="font-weight: bold; color: #fff; font-size: 1.1rem;">👤 ${cmt.username}</span>
-                                <span style="font-size: 0.85rem; color: #888; margin-left: 10px;">🕒 ${dateStr}</span>
-                            </div>
-                            ${menuHtml}
-                        </div>
-                        <p style="color: #ece8e1; line-height: 1.6; margin: 0; white-space: pre-wrap;">${cmt.content}</p>
-                    </div>
-                `;
-            });
+function openForumModal() {
+    if (!localStorage.getItem('esport_user')) return alert('Bạn cần đăng nhập để đăng câu hỏi!');
+    document.getElementById('forumModal').style.display = 'flex';
+}
+function closeForumModal() { document.getElementById('forumModal').style.display = 'none'; }
+async function submitForumPost() {
+    const title = document.getElementById('forumTitle').value.trim(), content = document.getElementById('forumContent').value.trim(), imageUrl = document.getElementById('forumImage').value.trim();
+    const user = JSON.parse(localStorage.getItem('esport_user'));
+    if (!title || !content) return alert("Vui lòng nhập đủ Tiêu đề và Nội dung!");
+    try {
+        if ((await fetch('/api/forums', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title, content, imageUrl, author: user.username }) })).ok) {
+            closeForumModal(); fetchForumPosts(); alert("Đăng bài thành công!");
         }
-    } catch (error) { console.error("Lỗi tải bình luận:", error); }
+    } catch (err) { alert("Lỗi đăng bài!"); }
 }
 
-function toggleCommentMenu(id) {
-    const menus = document.querySelectorAll('.comment-menu');
-    menus.forEach(m => { if(m.id !== 'menu-' + id) m.style.display = 'none'; });
-    const menu = document.getElementById('menu-' + id);
-    menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+// ==========================================
+// 6. CHI TIẾT VÀ TRẢ LỜI DIỄN ĐÀN (CHITIETDIANDAN)
+// ==========================================
+let currentForumPost = null; // Biến lưu tạm dữ liệu để nhét vào form sửa
+
+async function loadForumDetail() {
+    const id = new URLSearchParams(window.location.search).get('id');
+    const container = document.getElementById('forumDetailContent');
+    if (!id || !container) return;
+    try {
+        fetch(`/api/forums/${id}/view`, { method: 'PATCH' }).catch(e=>e);
+        const post = await (await fetch(`/api/forums/${id}`)).json();
+        currentForumPost = post; // Lưu lại data của bài viết
+        const user = JSON.parse(localStorage.getItem('esport_user'));
+        
+        let actionHtml = ''; 
+        if (user && (user.username === post.author || user.role === 'admin')) {
+            // Thay vì gọi prompt, giờ mình gọi hàm mở Modal
+            actionHtml = `<div style="margin-top: 20px;">
+                <button onclick="openEditForumModal()" style="background:#f39c12; border:none; padding:8px 15px; border-radius:5px; color:#fff; cursor:pointer; margin-right:10px;">✏️ Sửa nội dung</button>
+                <button onclick="deleteForumPost('${post._id}')" style="background:#ff4655; border:none; padding:8px 15px; border-radius:5px; color:#fff; cursor:pointer;">🗑️ Xóa bài</button>
+            </div>`;
+        }
+
+        container.innerHTML = `<div style="background: #1a1e24; padding: 30px; border-radius: 12px; border: 1px solid #2a2e35;"><h1 style="color:#fff; font-size:2rem; margin-bottom:10px;">${post.title}</h1><div style="color:#888; margin-bottom:25px;">👤 <b>${post.author}</b> • 🕒 ${new Date(post.createdAt).toLocaleString('vi-VN')} • 👁️ ${post.views + 1} lượt xem</div><div style="color:#ece8e1; font-size:1.1rem; line-height:1.8; white-space:pre-wrap;">${post.content}</div>${post.imageUrl ? `<img src="${post.imageUrl}" style="max-width:100%; border-radius:8px; margin-top:20px;">` : ''}${actionHtml}</div>`;
+        loadForumReplies(id);
+    } catch { container.innerHTML = `<h2 style="color:#ff4655; text-align:center;">❌ Lỗi: Bài viết không tồn tại hoặc đã bị xóa!</h2>`; }
 }
 
-async function submitComment(articleId, username) {
-    const input = document.getElementById('commentInput');
-    const content = input.value.trim();
-    if (!content) return alert("Vui lòng nhập nội dung bình luận!");
+async function deleteForumPost(id) {
+    if(confirm("Xóa vĩnh viễn bài đăng này?")) {
+        await fetch(`/api/forums/${id}`, { method: 'DELETE' });
+        window.location.href = 'diandan.html';
+    }
+}
+
+// ==== 3 HÀM XỬ LÝ MODAL SỬA BÀI VIẾT MỚI ====
+function openEditForumModal() {
+    if(!currentForumPost) return;
+    // Bơm dữ liệu cũ vào form
+    document.getElementById('editForumId').value = currentForumPost._id;
+    document.getElementById('editForumTitle').value = currentForumPost.title;
+    document.getElementById('editForumImage').value = currentForumPost.imageUrl || '';
+    document.getElementById('editForumContent').value = currentForumPost.content;
+    document.getElementById('editForumModal').style.display = 'flex'; // Hiện bảng
+}
+
+function closeEditForumModal() {
+    document.getElementById('editForumModal').style.display = 'none'; // Ẩn bảng
+}
+
+async function submitEditForumPost() {
+    const id = document.getElementById('editForumId').value;
+    const title = document.getElementById('editForumTitle').value.trim();
+    const imageUrl = document.getElementById('editForumImage').value.trim();
+    const content = document.getElementById('editForumContent').value.trim();
+
+    if (!title || !content) return alert("Vui lòng nhập đủ Tiêu đề và Nội dung!");
 
     try {
-        const res = await fetch(`/api/comments/${articleId}`, {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, content })
+        const res = await fetch(`/api/forums/${id}`, {
+            method: 'PUT',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({ title, imageUrl, content })
         });
-        if (res.ok) { input.value = ''; loadComments(articleId); }
-    } catch (error) { alert("Lỗi khi gửi bình luận!"); }
+        if(res.ok) {
+            alert("Cập nhật bài viết thành công!");
+            closeEditForumModal();
+            loadForumDetail(); // Load lại trang ngay lập tức để thấy thay đổi
+        }
+    } catch(e) { alert("Lỗi khi sửa bài!"); }
+}
+// =============================================
+
+async function loadForumReplies(forumId) {
+    const list = document.getElementById('repliesList'), form = document.getElementById('replyFormContainer');
+    if (!list) return;
+    const user = JSON.parse(localStorage.getItem('esport_user'));
+    
+    form.innerHTML = user ? `<div style="background:#1a1e24; padding:15px; border-radius:8px; border: 1px solid #2a2e35;"><textarea id="replyInput" rows="3" style="width:100%; padding:12px; background:#111418; color:white; border:1px solid #333; border-radius:5px; margin-bottom:10px;" placeholder="Nhập câu trả lời của bạn..."></textarea><div style="text-align:right;"><button onclick="submitForumReply('${forumId}', '${user.username}')" class="submit-btn" style="width:auto; padding:10px 20px;">Gửi Trả Lời 🚀</button></div></div>` : `<div style="text-align:center; padding:20px;"><a href="dangnhap.html" class="auth-btn">Đăng nhập để tham gia thảo luận</a></div>`;
+    
+    const replies = await (await fetch(`/api/forums/${forumId}/replies`)).json();
+    document.getElementById('replyCount').innerText = replies.length;
+    
+    list.innerHTML = replies.map(r => {
+        let actionBtn = '';
+        if (user && (user.username === r.author || user.role === 'admin')) {
+            actionBtn = `<button onclick="editReply('${r._id}', \`${r.content}\`, '${forumId}')" style="background:none; border:none; color:#f39c12; cursor:pointer;">✏️ Sửa</button> <button onclick="deleteReply('${r._id}', '${forumId}')" style="background:none; border:none; color:#ff4655; cursor:pointer; margin-left:10px;">🗑️ Xóa</button>`;
+        }
+        return `<div style="background:#1a1e24; padding:15px; border-radius:8px; border:1px solid #2a2e35; border-left:4px solid #aaa;"><div style="display:flex; justify-content:space-between; margin-bottom:10px;"><div><b style="color:#fff;">👤 ${r.author}</b> <span style="color:#888; font-size:0.85rem; margin-left:10px;">🕒 ${new Date(r.createdAt).toLocaleString('vi-VN')}</span></div><div>${actionBtn}</div></div><p style="color:#ece8e1; white-space:pre-wrap;">${r.content}</p></div>`;
+    }).join('');
 }
 
-async function editComment(id, oldContent, articleId) {
-    const newContent = prompt("Sửa bình luận của bạn:", oldContent);
-    if (newContent !== null && newContent.trim() !== "" && newContent !== oldContent) {
-        try {
-            await fetch(`/api/comments/${id}`, {
-                method: 'PUT', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ content: newContent })
-            });
-            loadComments(articleId);
-        } catch (error) { alert("Lỗi sửa bình luận!"); }
+async function submitForumReply(forumId, author) {
+    const content = document.getElementById('replyInput').value.trim();
+    if(content) {
+        await fetch(`/api/forums/${forumId}/replies`, { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({author, content}) });
+        loadForumReplies(forumId);
     }
 }
-
-async function deleteComment(id, articleId) {
-    if (confirm("Bạn có chắc chắn muốn xóa bình luận này?")) {
-        try {
-            await fetch(`/api/comments/${id}`, { method: 'DELETE' });
-            loadComments(articleId);
-        } catch (error) { alert("Lỗi xóa bình luận!"); }
+async function editReply(id, oldContent, forumId) {
+    const newContent = prompt("Sửa câu trả lời:", oldContent);
+    if(newContent && newContent !== oldContent) {
+        await fetch(`/api/forum-replies/${id}`, { method: 'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify({content: newContent}) });
+        loadForumReplies(forumId);
     }
 }
-
-async function reportComment(id) {
-    if (confirm("Báo cáo bình luận này vì nội dung không phù hợp?")) {
-        try {
-            await fetch(`/api/comments/${id}/report`, { method: 'PATCH' });
-            alert("Đã gửi báo cáo cho Admin xem xét!");
-            document.getElementById('menu-' + id).style.display = 'none';
-        } catch (error) { alert("Lỗi báo cáo!"); }
+async function deleteReply(id, forumId) {
+    if(confirm("Xóa câu trả lời này?")) {
+        await fetch(`/api/forum-replies/${id}`, { method: 'DELETE' });
+        loadForumReplies(forumId);
     }
 }
 
 // ==========================================
-// 6. TẢI COMPONENT VÀ KHỞI TẠO TRANG
+// 7. KHỞI TẠO TRANG
 // ==========================================
-async function loadComponents() {
+window.addEventListener('DOMContentLoaded', async () => {
     try {
         const hRes = await fetch('components/header.html');
         const fRes = await fetch('components/footer.html');
-        const hBox = document.getElementById('header-placeholder');
-        const fBox = document.getElementById('footer-placeholder');
-        if(hBox) hBox.innerHTML = await hRes.text();
-        if(fBox) fBox.innerHTML = await fRes.text();
-
-        checkAuth(); 
-        if (document.getElementById('news-container')) fetchArticles(); 
+        if(document.getElementById('header-placeholder')) document.getElementById('header-placeholder').innerHTML = await hRes.text();
+        if(document.getElementById('footer-placeholder')) document.getElementById('footer-placeholder').innerHTML = await fRes.text();
+        
+        checkAuth();
+        if (document.getElementById('news-container')) fetchArticles();
         if (document.getElementById('articleDetail')) loadArticleDetail();
-    } catch (error) { console.error("Lỗi khi tải component:", error); }
-}
-
-window.addEventListener('DOMContentLoaded', loadComponents);
+        fetchForumPosts();
+        if (document.getElementById('forumDetailContent')) loadForumDetail();
+    } catch (err) { console.error(err); }
+});

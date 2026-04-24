@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diễn đàn cộng đồng - Q-Esport</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div id="header-placeholder"></div>
+
+    <div class="container" style="max-width: 1000px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+            <h2 style="color: #fff; border-left: 4px solid #5d4369; padding-left: 10px; font-size: 1.8rem; text-transform: uppercase;">Diễn Đàn Cộng Đồng</h2>
+            <button onclick="openForumModal()" class="auth-btn" style="background:#5d4369; color:white;">+ TẠO CÂU HỎI MỚI</button>
+        </div>
+
+        <div class="forum-list" id="fullForumList">
+            <h3 style="color:#888; text-align:center;">⏳ Đang tải bài viết...</h3>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="forumModal">
+        <div class="modal-content">
+            <h3>Đăng Câu Hỏi / Thảo Luận</h3>
+            <div class="input-group">
+                <input type="text" id="forumTitle" placeholder="Tiêu đề câu hỏi..." required>
+                <input type="text" id="forumImage" placeholder="Link hình ảnh (không bắt buộc)">
+                <textarea id="forumContent" rows="5" placeholder="Nội dung chi tiết..." required></textarea>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button onclick="submitForumPost()" class="load-more-btn" style="flex:1; padding: 10px;">ĐĂNG BÀI</button>
+                <button onclick="closeForumModal()" class="load-more-btn" style="flex:1; padding: 10px; background:#ff4655; border-color:#ff4655;">HỦY</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="footer-placeholder"></div>
+    <script src="js/script.js"></script>
+</body>
+</html>

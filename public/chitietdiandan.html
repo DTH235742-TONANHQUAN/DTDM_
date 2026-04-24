@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chi tiết thảo luận - Q-Esport</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div id="header-placeholder"></div>
+
+    <div class="container" style="max-width: 1000px;">
+        <a href="diandan.html" class="back-btn">⬅ Quay lại Diễn đàn</a>
+        
+        <div id="forumDetailContent" style="margin-top: 20px;">
+            <h2 style="text-align: center; color: #888;">⏳ Đang tải nội dung...</h2>
+        </div>
+
+        <div class="comments-section" style="margin-top: 50px; padding-top: 30px; border-top: 2px solid #2a2e35;">
+            <h3 style="color: #fff; margin-bottom: 25px; font-size: 1.5rem;">💬 Trả lời (<span id="replyCount">0</span>)</h3>
+            
+            <div id="replyFormContainer" style="margin-bottom: 30px;"></div>
+            <div id="repliesList" style="display: flex; flex-direction: column; gap: 15px;"></div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="editForumModal" style="display: none;">
+        <div class="modal-content">
+            <h3>Sửa Bài Thảo Luận</h3>
+            <input type="hidden" id="editForumId">
+            <div class="input-group">
+                <input type="text" id="editForumTitle" placeholder="Tiêu đề câu hỏi..." required>
+                <input type="text" id="editForumImage" placeholder="Link hình ảnh (không bắt buộc)">
+                <textarea id="editForumContent" rows="5" placeholder="Nội dung chi tiết..." required></textarea>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button onclick="submitEditForumPost()" class="load-more-btn" style="flex:1; padding: 10px; background:#f39c12; border-color:#f39c12;">LƯU THAY ĐỔI</button>
+                <button onclick="closeEditForumModal()" class="load-more-btn" style="flex:1; padding: 10px; background:#ff4655; border-color:#ff4655;">HỦY</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="footer-placeholder"></div>
+    <script src="js/script.js"></script>
+</body>
+</html>
