@@ -162,7 +162,7 @@ async function submitForumPost() {
 // ==========================================
 // 6. CHI TIẾT VÀ TRẢ LỜI DIỄN ĐÀN (CHITIETDIANDAN)
 // ==========================================
-let currentForumPost = null; // Biến lưu tạm dữ liệu để nhét vào form sửa
+let currentForumPost = null; 
 
 async function loadForumDetail() {
     const id = new URLSearchParams(window.location.search).get('id');
@@ -171,12 +171,11 @@ async function loadForumDetail() {
     try {
         fetch(`/api/forums/${id}/view`, { method: 'PATCH' }).catch(e=>e);
         const post = await (await fetch(`/api/forums/${id}`)).json();
-        currentForumPost = post; // Lưu lại data của bài viết
+        currentForumPost = post; 
         const user = JSON.parse(localStorage.getItem('esport_user'));
         
         let actionHtml = ''; 
         if (user && (user.username === post.author || user.role === 'admin')) {
-            // Thay vì gọi prompt, giờ mình gọi hàm mở Modal
             actionHtml = `<div style="margin-top: 20px;">
                 <button onclick="openEditForumModal()" style="background:#f39c12; border:none; padding:8px 15px; border-radius:5px; color:#fff; cursor:pointer; margin-right:10px;">✏️ Sửa nội dung</button>
                 <button onclick="deleteForumPost('${post._id}')" style="background:#ff4655; border:none; padding:8px 15px; border-radius:5px; color:#fff; cursor:pointer;">🗑️ Xóa bài</button>
@@ -195,43 +194,24 @@ async function deleteForumPost(id) {
     }
 }
 
-// ==== 3 HÀM XỬ LÝ MODAL SỬA BÀI VIẾT MỚI ====
 function openEditForumModal() {
     if(!currentForumPost) return;
-    // Bơm dữ liệu cũ vào form
     document.getElementById('editForumId').value = currentForumPost._id;
     document.getElementById('editForumTitle').value = currentForumPost.title;
     document.getElementById('editForumImage').value = currentForumPost.imageUrl || '';
     document.getElementById('editForumContent').value = currentForumPost.content;
-    document.getElementById('editForumModal').style.display = 'flex'; // Hiện bảng
+    document.getElementById('editForumModal').style.display = 'flex';
 }
-
-function closeEditForumModal() {
-    document.getElementById('editForumModal').style.display = 'none'; // Ẩn bảng
-}
-
+function closeEditForumModal() { document.getElementById('editForumModal').style.display = 'none'; }
 async function submitEditForumPost() {
-    const id = document.getElementById('editForumId').value;
-    const title = document.getElementById('editForumTitle').value.trim();
-    const imageUrl = document.getElementById('editForumImage').value.trim();
-    const content = document.getElementById('editForumContent').value.trim();
-
-    if (!title || !content) return alert("Vui lòng nhập đủ Tiêu đề và Nội dung!");
-
+    const id = document.getElementById('editForumId').value, title = document.getElementById('editForumTitle').value.trim(), imageUrl = document.getElementById('editForumImage').value.trim(), content = document.getElementById('editForumContent').value.trim();
+    if (!title || !content) return alert("Vui lòng nhập đủ!");
     try {
-        const res = await fetch(`/api/forums/${id}`, {
-            method: 'PUT',
-            headers: {'Content-Type':'application/json'},
-            body: JSON.stringify({ title, imageUrl, content })
-        });
-        if(res.ok) {
-            alert("Cập nhật bài viết thành công!");
-            closeEditForumModal();
-            loadForumDetail(); // Load lại trang ngay lập tức để thấy thay đổi
+        if((await fetch(`/api/forums/${id}`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ title, imageUrl, content }) })).ok) {
+            alert("Cập nhật thành công!"); closeEditForumModal(); loadForumDetail();
         }
-    } catch(e) { alert("Lỗi khi sửa bài!"); }
+    } catch(e) { alert("Lỗi khi sửa!"); }
 }
-// =============================================
 
 async function loadForumReplies(forumId) {
     const list = document.getElementById('repliesList'), form = document.getElementById('replyFormContainer');
@@ -274,14 +254,60 @@ async function deleteReply(id, forumId) {
 }
 
 // ==========================================
-// 7. KHỞI TẠO TRANG
+// 7. BẢN ĐỒ (MAP) TÍCH HỢP BÊN NGOÀI
+// ==========================================
+// Hàm tự động tải thư viện Leaflet nếu chưa có
+function loadMapLibrary() {
+    return new Promise((resolve) => {
+        if (document.getElementById('leaflet-css')) return resolve();
+        
+        const link = document.createElement('link');
+        link.id = 'leaflet-css';
+        link.rel = 'stylesheet';
+        link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+        document.head.appendChild(link);
+
+        const script = document.createElement('script');
+        script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+        script.onload = () => resolve();
+        document.head.appendChild(script);
+    });
+}
+
+// Khởi tạo bản đồ sau khi đã có thư viện
+async function initMap() {
+    const mapElement = document.getElementById('footer-map');
+    if (!mapElement) return;
+
+    await loadMapLibrary(); // Tải CSS và JS
+
+    // Tọa độ Khu Sinh viên Công nghệ, TP. Long Xuyên
+    const lat = 10.3708; 
+    const lng = 105.4312;
+
+    const map = L.map('footer-map').setView([lat, lng], 15);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap'
+    }).addTo(map);
+
+    L.marker([lat, lng]).addTo(map)
+        .bindPopup('<b style="color:#5d4369;">Trụ sở Q-Esport</b><br>Khu SV Công nghệ, TP. Long Xuyên')
+        .openPopup();
+}
+
+// ==========================================
+// 8. KHỞI TẠO TRANG
 // ==========================================
 window.addEventListener('DOMContentLoaded', async () => {
     try {
         const hRes = await fetch('components/header.html');
         const fRes = await fetch('components/footer.html');
         if(document.getElementById('header-placeholder')) document.getElementById('header-placeholder').innerHTML = await hRes.text();
-        if(document.getElementById('footer-placeholder')) document.getElementById('footer-placeholder').innerHTML = await fRes.text();
+        if(document.getElementById('footer-placeholder')) {
+            document.getElementById('footer-placeholder').innerHTML = await fRes.text();
+            initMap(); // Gọi hiển thị bản đồ ngay sau khi tải xong Footer
+        }
         
         checkAuth();
         if (document.getElementById('news-container')) fetchArticles();
